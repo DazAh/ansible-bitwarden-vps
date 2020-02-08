@@ -1,4 +1,3 @@
-# Admin
 # Setup a completely "new" server or "restore" to copy and restore previous configuration.
 provision_restore: false
 
