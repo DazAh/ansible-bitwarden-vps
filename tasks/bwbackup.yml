@@ -1,0 +1,42 @@
+- name: Create dir for bitwarden backup script installation
+  file:
+    path: /opt/bwbackup/
+    state: directory
+    mode: '0755'
+
+- name: Copy bw-backup systemd unit
+  copy: 
+    src: requirements.txt
+    dest: /opt/requirements.txt
+
+- pip:
+    virtualenv: /opt/bwbackup/
+    virtualenv_command: virtualenv-3
+    requirements: /opt/requirements.txt
+    virtualenv_site_packages: yes
+    virtualenv_python: python3
+
+- name: Copy bitwarden backup script
+  template:
+    src: b.py
+    dest: /opt/bwbackup/b.py
+
+- name: Copy bitwarden systemd timer
+  template: src=systemd/bw-backup.timer dest=/etc/systemd/system/bw-backup.timer
+
+- name: Copy bitwarden systemd service unit
+  template: src=systemd/bw-backup.service dest=/etc/systemd/system/bw-backup.service
+
+- name: Reload systemd - Enable bw-backup timer
+  systemd:
+    name: bw-backup.timer
+    daemon_reload: yes
+    enabled: yes
+    state: started
+
+- name: Ensure nginx reloaded configuration
+  systemd:
+    name: nginx.service
+    enabled: yes
+    state: restarted
+

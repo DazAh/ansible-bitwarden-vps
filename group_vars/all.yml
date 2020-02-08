@@ -1,0 +1,73 @@
+# Admin
+# Setup a completely "new" server or "restore" to copy and restore previous configuration.
+provision_restore: false
+
+user: yourname
+# Admin account password (mkpasswd --method=SHA-512)
+user_password: $6$rFWnFo6N4j55AUwr$e12ySj6M2wZFtbrDQYnNTv5o5RDZi7y8dzKrRDEttrzK3ZLNz9GU4TYGnTNp.lXmI5rm2Y7SlOA7eU1oSaktB0
+# Hostname:
+hostname: ansible1
+# rootless container user
+podman_user: bitwarden
+# Timezone (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+timezone: Europe/London
+
+# Your email and domains, used for Let's Encrypt SSL certs
+email: example@gmail.com
+# Domains for LetsEncrypt
+domain_bw: bitwarden.domain.com
+
+# Nginx module/stream to use (Currently 1.14 or 1.16)
+nginx_version_stream: 1.16
+
+# Bitwarden tar gz file name located in /files:
+bitwarden_tar: restore.tar.gz
+# Docker image tag to pull
+bitwarden_version_tag: 1.13.1
+
+#####################################################
+bw_SIGNUPS_ALLOWED: false
+bw_ROCKET_WORKERS: 10
+bw_WEB_VAULT_ENABLED: true
+bw_WEBSOCKET_ENABLED: true #Require for live sync.
+bw_LOG_LEVEL: warn
+bw_ADMIN_TOKEN: rdiorguruuirdgiuguir
+
+# Bitwarden email setting. (Needed for verify, password hint and Login notifcations)
+bw_SMTP_HOST: smtp.gmail.com
+bw_SMTP_FROM: example@gmail.com
+bw_SMTP_PORT: 587
+bw_SMTP_SSL: true
+bw_SMTP_USERNAME: ak@gmail.com
+bw_SMTP_PASSWORD: password
+#####################################################
+
+# Bitwarden backup settings
+b2_application_key_id: erherherb2keyid
+b2_application: reegiorghueiruigreuhireg
+b2_bucket: bwbackup
+
+mega_user: mega@example.com
+mega_pass: password1
+
+pushover_token: eriggoirereiogioregre
+pushover_user: gregrijer
+
+#####################################################
+
+# EPEL Repo
+epel_repo_url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+epel_repo_gpg_key_url: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+epel_repofile_path: "/etc/yum.repos.d/epel.repo"
+
+#####################################################
+
+# Airsonic music proxy - using stunnel client
+# Configures stunnel using certificate validation (Check files dir)
+# Place CA (PEM) in files folder under: stunnel-ca.crt!
+enable_airsonic_proxy: false
+domain_airsonic: music.example.com
+#Stunnel host and cert URI
+stunnel_host: stunnel.example.com
+stunnel_port: 5578
+ 

@@ -1,0 +1,59 @@
+---
+- name: Install google authenticator PAM module
+  dnf:
+    name: 'google-authenticator'
+    state: present
+
+- name: Add optional authenticator to PAM
+  lineinfile:
+    dest=/etc/pam.d/sshd
+    line="-session   optional     pam_reauthorize.so prepare"
+    insertafter=EOF
+    state=present
+
+- name: Add Google authenticator to PAM
+  lineinfile:
+    dest=/etc/pam.d/sshd
+    line="auth required pam_google_authenticator.so secret=~/.ssh/.google_authenticator nullok"
+    insertafter=EOF
+    state=present
+
+- name: Make SSH two factor aware
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    line: "AuthenticationMethods publickey,keyboard-interactive"
+    insertafter: EOF
+    state: present
+
+- name: Pam disable password auth for SSH
+  lineinfile:
+     dest=/etc/pam.d/sshd
+     regexp="substack.*password-auth"
+     line="#auth       substack     password-auth"
+     state=present
+     backup=yes
+
+- name: Generate a timed-based, no reuse, rate-limited (3 logins per 30 seconds) with one concurrently valid code for default user
+  command: /usr/bin/google-authenticator -t -f -d --label="{{ user }}@bw" -Q ANSI -q -r 3 -R 30 -w 1 --secret=/home/{{ user }}/.ssh/.google_authenticator
+           creates=/home/{{ user }}/.ssh/.google_authenticator
+  # Saves to .ssh folder due to SElinux Policy requirements.
+
+- name: Retrieve generated keys from server
+  fetch:
+    src: "/home/{{ user }}/.ssh/.google_authenticator"
+    dest: /tmp/sovereign-google-auth-files/secret_auth
+    flat: yes
+    validate_checksum: yes
+
+- name: Set permissions of two factor secret
+  file:
+    path: "/home/{{ user }}/.ssh/.google_authenticator"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    setype: ssh_home_t
+    mode: 0400
+    state: file
+  notify: restart sshd
+
+- pause: seconds=5
+         prompt="Your TOTP Authentication keys are in /tmp/sovereign-auth-files. Press any key to continue..."

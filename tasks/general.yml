@@ -1,0 +1,68 @@
+- name: Set Hostname
+  hostname:
+    name: "{{ hostname }}"
+
+- name: Set timezone
+  timezone:
+   name: "{{ timezone }}"
+
+# - name: Install root ssh key (remove on finals)
+#   authorized_key:
+#     user: root
+#     key: "{{ lookup('file', './ansible.pub') }}"
+#     # register: add_identity_key
+#     state: present
+
+- name: Remove other motd
+  file:
+    path: /etc/motd.d/*
+    state: absent
+
+- name: Create MOTD directory if it doesn't exist
+  file:
+    path: /etc/motd.d
+    state: directory
+    mode: '0755'
+
+- name: Set login banner
+  template:
+    src: motd.txt
+    dest: /etc/motd.d/motd
+
+- name: upgrade all packages to latest version
+  dnf:
+    name: "*"
+    state: latest
+
+- name: Create 'user' group
+  group:
+    name: "{{ user }}"
+    state: present
+
+- name: Create 'user'
+  user:
+    name: "{{ user }}"
+    state: present
+    #system: yes
+    password: "{{ user_password }}"
+    create_home: yes
+    group: "{{ user }}"
+    shell: /bin/bash
+
+- name: Install ssh key
+  authorized_key:
+    user: "{{ user }}"
+    key: "{{ lookup('file', lookup('env','HOME') + '~/.ssh/id_ed25519.pub') }}"
+    state: present
+
+- name: Allow 'user' to have sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    insertafter: EOF
+    line: "{{ user }} ALL=(ALL)    ALL"
+    validate: visudo -cf %s
+
+- name: Ensure systemwide crypto policy is set to DEFAULT
+  shell:
+    cmd: /usr/bin/update-crypto-policies --set DEFAULT

@@ -1,0 +1,6 @@
+[Unit]
+Description=bitwarden backup script
+
+[Service]
+WorkingDirectory=/opt/bwbackup
+ExecStart=/opt/bwbackup/bin/python3 b.py

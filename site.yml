@@ -1,0 +1,42 @@
+---
+- name: Configure personal vps
+  hosts: vps
+
+  pre_tasks:
+  - import_tasks: tasks/general.yml
+    tags: setup
+
+  - import_tasks: tasks/repo.yml
+    tags: packages
+
+  - import_tasks: tasks/packages.yml
+    tags: packages
+
+  tasks:
+  - import_tasks: tasks/ssh.yml
+    tags: ssh
+
+  # - import_tasks: tasks/2fa.yml
+  #   tags: packages
+
+  - import_tasks: tasks/bitwarden.yml
+    tags: bw
+
+  - import_tasks: tasks/firewalld.yml
+    tags: fw
+
+  - import_tasks: tasks/certs.yml
+    tags: certs
+
+  - import_tasks: tasks/nginx.yml
+    tags: web
+
+  - import_tasks: tasks/bwbackup.yml
+    tags: bw
+
+  - import_tasks: tasks/stunnel.yml
+    tags: proxy
+    when: enable_airsonic_proxy|bool
+
+  handlers:
+  - include: handlers/main.yml

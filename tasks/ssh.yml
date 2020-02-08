@@ -1,0 +1,30 @@
+- name: Disallow root SSH access
+  lineinfile:
+    dest=/etc/ssh/sshd_config
+    regexp="^PermitRootLogin"
+    line="PermitRootLogin no"
+    state=present
+
+- name: Disable password authentication
+  lineinfile:
+    dest=/etc/ssh/sshd_config
+    regexp="^PasswordAuthentication"
+    line="PasswordAuthentication no"
+    state=present
+
+- name: Disable empty password login
+  lineinfile:
+    dest=/etc/ssh/sshd_config
+    regexp="^#?PermitEmptyPasswords"
+    line="PermitEmptyPasswords no"
+    state=present
+
+- name: Enable SSH ChallengeResponse
+  lineinfile:
+    dest=/etc/ssh/sshd_config
+    regexp="^ChallengeResponseAuthentication"
+    line="ChallengeResponseAuthentication yes"
+    state=present
+  notify: 
+   - restart sshd
+

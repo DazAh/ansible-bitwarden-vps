@@ -1,0 +1,62 @@
+- name: Check if certbot-auto already exists
+  stat:
+    path: /usr/local/bin/certbot-auto
+  register: stat_result
+
+- name: Download certbot
+  get_url:
+    url: https://dl.eff.org/certbot-auto
+    dest: /usr/local/bin/certbot-auto
+    validate_certs: yes
+  when: stat_result.stat.exists == False
+
+- name: Set permissions for certbot binary
+  file:
+    path: /usr/local/bin/certbot-auto
+    state: file
+    mode: '0755'
+    owner: root
+    group: root
+  when: stat_result.stat.exists == False
+
+- name: Apply correct SELinux policy to certbot
+  command: restorecon -irv /usr/local/bin/certbot-auto
+  when: stat_result.stat.exists == False
+
+- name: Ensure nginx is stopped for cert renewal
+  systemd:
+    name: nginx.service
+    state: stopped
+
+- name: Generate cert for bitwarden from LetsEncrypt 
+  command: /usr/local/bin/certbot-auto certonly --standalone --noninteractive --agree-tos --email {{ email }} -d {{ domain_bw }}
+  when: 
+    - stat_result.stat.exists == False
+
+- name: Generate cert for airsonic from LetsEncrypt 
+  command: /usr/local/bin/certbot-auto certonly --standalone --noninteractive --agree-tos --email {{ email }} -d {{ domain_airsonic }}
+  when: 
+    - stat_result.stat.exists == False
+    - enable_airsonic_proxy|bool
+
+- name: Deploy certbot systemd timer (1w)
+  template:
+    src: systemd/certbot-renew.timer
+    dest: /etc/systemd/system/certbot-renew.timer
+
+- name: Deploy certbot systemd service
+  template:
+    src: systemd/certbot-renew.service
+    dest: /etc/systemd/system/certbot-renew.service
+
+- name: Reload systemd - Enable certbot-renew timer
+  systemd:
+    name: certbot-renew.timer
+    daemon_reload: yes
+    enabled: yes
+    state: started
+
+
+
+
+    

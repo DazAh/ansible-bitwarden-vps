@@ -1,0 +1,30 @@
+- name: Set dmz as default policy
+  command: firewall-cmd --set-default-zone=dmz
+
+- name: Open HTTP port
+  firewalld:
+    service: http
+    zone: dmz
+    permanent: yes
+    state: enabled
+
+- name: Open HTTPS port
+  firewalld:
+    service: https
+    zone: dmz
+    permanent: yes
+    state: enabled
+
+- name: Ensure SSH remains port
+  firewalld:
+    service: ssh
+    zone: dmz
+    permanent: yes
+    state: enabled
+
+- name: Reload firewalld
+  systemd:
+    name: firewalld.service
+    enabled: yes
+    state: restarted
+

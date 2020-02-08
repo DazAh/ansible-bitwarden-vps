@@ -1,0 +1,33 @@
+- name: Deploy bitwarden nginx config
+  template:
+    src: nginx/bitwarden.nginx
+    dest: /etc/nginx/conf.d/bitwarden.conf
+    group: root
+    owner: root
+    mode: 0644
+
+- name: Deploy airsonic nginx config if proxy enabled
+  template:
+    src: nginx/airsonic.nginx
+    dest: /etc/nginx/conf.d/airsonic.conf
+    group: root
+    owner: root
+    mode: 0644
+  when: enable_airsonic_proxy|bool
+
+- name: Generate dhparam
+  shell:
+    cmd: "openssl dhparam -out /etc/nginx/dhparam-2048.pem 2048"
+
+- name: Set SELinux boolean httpd_can_network_connect flag on and keep it persistent across reboots
+  seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+
+- name: Start nginx
+  systemd:
+    name: nginx.service
+    enabled: yes
+    state: started
+

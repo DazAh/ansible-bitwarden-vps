@@ -1,0 +1,25 @@
+- name: Deploy Certificate Authority used by stunnel server
+  copy:
+    src: "stunnel-ca.crt"
+    dest: "/etc/pki/ca-trust/source/anchors/stunnel-ca.crt"
+    group: root
+    owner: root
+    mode: 0644
+    remote_src: no
+
+- name: Update CA stores
+  command: /usr/bin/update-ca-trust extract
+
+- name: Deploy stunnel configuration
+  template:
+    src: stunnel.conf
+    dest: /etc/stunnel/stunnel.conf
+    group: root
+    owner: root
+    mode: 0644
+
+- name: Enable and start stunnel service
+  systemd:
+    name: stunnel.service
+    enabled: yes
+    state: started

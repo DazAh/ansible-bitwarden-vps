@@ -1,0 +1,7 @@
+[Unit]
+Description=Certbot Renewal
+
+[Service]
+ExecStartPre=/bin/systemctl stop nginx
+ExecStart=/bin/bash /usr/local/bin/certbot-auto renew
+ExecStartPost=/bin/systemctl start nginx

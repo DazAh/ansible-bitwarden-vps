@@ -1,0 +1,10 @@
+[Unit]
+Description=Run bitwarden backup service daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target

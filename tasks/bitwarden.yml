@@ -1,0 +1,84 @@
+- name: Create 'podman_user' group
+  group:
+    name: "{{ podman_user }}"
+    state: present
+
+- name: Create 'podman_user'
+  user:
+    name: "{{ podman_user }}"
+    state: present
+    system: no
+    password: "{{ user_password }}"
+    create_home: yes
+    home: "/var/local/{{ podman_user }}"
+    group: "{{ podman_user }}"
+    shell: /bin/bash
+
+- name: Set SELinux contexts to home dir (podman_user)
+  sefcontext:
+   target: "/var/local/{{ podman_user }}"
+   setype: user_home_dir_t
+   state: present
+
+- name: Set SELinux contexts to home files (podman_user)
+  sefcontext:
+    target: "/var/local/{{ podman_user }}(/.*)?"
+    setype: user_home_t
+    state: present
+
+- name: Apply new SELinux file context to filesystem
+  command: "restorecon -irv /var/local/{{ podman_user }}"
+
+- name: Create bitwarden podman mount directory
+  file:
+    path: /var/local/{{ podman_user }}/data
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: 0700
+
+- name: Ensure podman enviroment is set for rootless containers
+  shell:
+    cmd: "loginctl enable-linger {{ podman_user }} && su -l {{ podman_user }} -c 'exit'"
+    # Linger must be enabled due to podman 1.6 - (Rootless Podman no longer
+    # enables linger on systems with systemd as init by default)
+
+- name: Copy bitwarden enviroment file
+  template:
+    src: bw_container.env
+    dest: /var/local/{{ podman_user }}/bw_container.env
+    group: "{{ podman_user }}"
+    owner: "{{ podman_user }}"
+    mode: 0400
+
+- name: Restore bitwarden data files
+  unarchive:
+    src: "{{ bitwarden_tar }}"
+    dest: /var/local/{{ podman_user }}/data
+    remote_src: no
+  when: provision_restore|bool
+
+- name: Copy bitwarden files
+  copy:
+    src: "/var/local/{{ podman_user }}/data/backup.db"
+    dest: "/var/local/{{ podman_user }}/data/bitwarden.db"
+    group: "{{ podman_user }}"
+    owner: "{{ podman_user }}"
+    remote_src: yes
+  when: provision_restore|bool
+
+- name: Clean up leftover files
+  file:
+    path: "/var/local/{{ podman_user }}/data/backup.db"
+    state: absent
+  when: provision_restore|bool
+
+- name: Copy bitwarden systemd unit
+  template: src=systemd/bitwarden.service dest=/etc/systemd/system/bitwarden.service
+
+- name: Reload systemd - Enable and start bitwarden service
+  systemd:
+    name: bitwarden.service
+    daemon_reload: yes
+    enabled: yes
+    state: started
