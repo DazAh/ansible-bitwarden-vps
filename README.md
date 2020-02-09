@@ -1,5 +1,5 @@
 # ansible-bitwarden-vps
-Personal bitwarden vps playbook
+Personal bitwarden_rs vps playbook
 
 
 Uses B2 and Mega to backup bitwarden attachments and database (SQLITE).
