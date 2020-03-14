@@ -23,7 +23,7 @@ nginx_version_stream: 1.16
 # Dir structure is root of bitwarden /data folder.
 bitwarden_tar: restore.tar.gz
 # Docker image tag to pull
-bitwarden_version_tag: 1.13.1
+bitwarden_version_tag: 1.14
 
 #####################################################
 bw_SIGNUPS_ALLOWED: false

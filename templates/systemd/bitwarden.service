@@ -1,12 +1,13 @@
 [Unit]
 Description=bitwarden
 Requires=user@1001.service
+After=user@1001.service
+
 [Service]
 KillMode=none
 MemoryMax=200M
-ExecStartPre=-/usr/bin/podman rm -f bw
-ExecStartPre=/usr/bin/podman pull bitwardenrs/server:{{ bitwarden_version_tag }}
-ExecStart=/usr/bin/podman run -d --name bw --env-file /var/local/{{ podman_user }}/bw_container.env --log-driver=journald -p 6666:80 -p 3012:3012 -v /var/local/{{ podman_user }}/data:/data:Z docker.io/bitwardenrs/server:{{ bitwarden_version_tag }}
+ExecStartPre=/usr/bin/podman pull docker.io/bitwardenrs/server:{{ bitwarden_version_tag }}
+ExecStart=/usr/bin/podman run --rm -d --name bw --env-file /var/local/{{ podman_user }}/bw_container.env --log-driver=journald -p 6666:80 -p 3012:3012 -v /var/local/{{ podman_user }}/data:/data:Z docker.io/bitwardenrs/server:{{ bitwarden_version_tag }}
 ExecStop=/usr/bin/podman stop bw
 Restart=always
 User={{ podman_user }}
