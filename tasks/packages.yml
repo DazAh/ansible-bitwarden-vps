@@ -50,6 +50,17 @@
     name: python3-virtualenv
     state: latest
 
+ - name: Install earlyoom
+   dnf:
+    name: earlyoom
+    state: latest
+
+ - name: Enable and start earlyoom service
+   systemd:
+    name: earlyoom.service
+    enabled: yes
+    state: started
+
  - name: Install stunnel
    dnf:
     name: stunnel
